@@ -1,0 +1,13 @@
+#ifndef PWMGEN_H_
+#define PWMGEN_H_
+
+void initialisePWM (void);
+void initialisePWMTail (void);
+
+void setPWM (uint32_t u32Freq, uint32_t u32Duty);
+void setPWMTail (uint32_t u32Freq, uint32_t u32Duty);
+
+void initPWM (void);
+void generatePWM (void);
+
+#endif /* PWMGEN_H_ */

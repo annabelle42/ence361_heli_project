@@ -1,0 +1,27 @@
+/**********************************************************
+//
+// display.h - display module handling all display processing
+// Created on 11/04/2019
+//
+// Authors: Annabelle Ritchie, Karan Naidu, Emily Tideswell
+// Group 13, Thursday PM lab
+**********************************************************/
+
+#ifndef DISPLAY_H_
+#define DISPLAY_H_
+
+void
+initDisplay (void);
+
+//*****************************************************************************
+//
+// Function to display the mean ADC value (10-bit value, note) and sample count.
+//
+//*****************************************************************************
+void
+displayAltYaw(int meanAlt, int meanYaw, int ref);
+
+void displayDebugYaw(int phaseA, int phaseB, int dir);
+
+
+#endif /* DISPLAY_H_ */

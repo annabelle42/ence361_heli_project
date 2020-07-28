@@ -1,0 +1,14 @@
+/*
+ * buttonInput.h
+ *
+ *  Created on: 12/05/2019
+ *      Author: annab
+ */
+
+#ifndef BUTTONINPUT_H_
+#define BUTTONINPUT_H_
+
+void checkForAltitudeInput ();
+void checkForYawInput ();
+
+#endif /* BUTTONINPUT_H_ */

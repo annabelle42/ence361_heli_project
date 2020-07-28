@@ -1,0 +1,77 @@
+/**********************************************************
+//
+// display.c - display module handling all display processing
+// Created on 11/04/2019
+//
+// Authors: Annabelle Ritchie, Karan Naidu, Emily Tideswell
+// Group 13, Thursday PM lab
+**********************************************************/
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "uart.h"
+#include "control.h"
+
+void
+initDisplay (void)
+{
+    // initialise the Orbit OLED display
+    OLEDInitialise ();
+}
+
+//*****************************************************************************
+//
+// Function to display the mean ADC value (10-bit value, note) and sample count.
+//
+//*****************************************************************************
+void
+displayAltYaw(int meanAlt, int meanYaw)
+{
+    char string[20];  // 16 characters across the display
+
+    // Form a new string for the line.  The maximum width specified for the
+    //  number field ensures it is displayed right justified.
+    usnprintf (string, sizeof(string), "Altitude:%4d[%4d]\r\n", meanAlt, desiredAltitude);
+    // Update line on display.
+    OLEDStringDraw (string, 0, 0);
+    UARTSend(string);
+
+    usnprintf (string, sizeof(string), "Yaw:%4d[%4d]\r\n", meanYaw, desiredYaw);
+    OLEDStringDraw (string, 0, 1);
+    UARTSend(string);
+
+    if (flying)
+    {
+        usnprintf (string, sizeof(string), "FLYING\r\n");
+        UARTSend(string);
+    }
+    else if (landing)
+    {
+        usnprintf (string, sizeof(string), "LANDING\r\n");
+        UARTSend(string);
+    }
+    else if (takingoff)
+    {
+        usnprintf (string, sizeof(string), "TAKING OFF\r\n");
+        UARTSend(string);
+    }
+    else if (landed)
+    {
+        usnprintf (string, sizeof(string), "LANDED\r\n");
+        UARTSend(string);
+    }
+}

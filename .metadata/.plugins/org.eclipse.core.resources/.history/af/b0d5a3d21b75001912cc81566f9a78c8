@@ -1,0 +1,68 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+
+int currentAltitude;
+int currentYaw;
+
+int desiredAltitude;
+int desiredYaw;
+
+int turningToReference;
+int landing;
+
+#define ALTITUDE_KP 1.0
+#define ALTITUDE_KI 0.1
+
+#define YAW_KP 1.0
+#define YAW_KI 0.1
+
+void controlAltitude (void)
+{
+    if (landing)
+    {
+        // run landing program
+    }
+    else
+    {
+        // run control algorithm for currentAltitude
+    }
+}
+
+void controlYaw (void)
+{
+    if (turningToReference)
+    {
+        // run turn to reference program
+        if (getYawRef() == 1)
+        {
+            // set motor to some slow-ish speed
+        }
+        else
+        {
+            // we have finished and are facing reference point
+            turningToReference = 0;
+        }
+    }
+    else
+    {
+        // run control algorithm for currentYaw
+    }
+}

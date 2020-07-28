@@ -1,0 +1,104 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "pwmGen.h"
+#include "uart.h"
+
+float timeStep;
+float integratedError;
+
+int currentAltitude;
+int currentYaw;
+
+int desiredAltitude;
+int desiredYaw;
+
+int turningToReference;
+int landing;
+
+#define ALTITUDE_KP 1.0
+#define ALTITUDE_KI 0.1
+
+#define YAW_KP 1.0
+#define YAW_KI 0.1
+
+void controlAltitude (void)
+{
+    if (landing)
+    {
+        // run landing program
+    }
+    else
+    {
+        // run control algorithm for currentAltitude
+
+        float currentError = desiredAltitude - currentAltitude;
+        integratedError += (currentError * timeStep);         // Numerical integration for integral control
+
+        currentAltitude = ALTITUDE_KP * currentError + ALTITUDE_KI * integratedError;
+    }
+}
+
+void controlYaw (void)
+{
+   /*if (turningToReference)
+    {
+        // run turn to reference program
+        if (getYawRef() == 1)
+        {
+            setPWMTail(200, 25);
+            // set motor to some slow-ish speed
+        }
+        else
+        {
+            // we have finished and are facing reference point
+            turningToReference = 0;
+            setPWMTail(0, 0);
+        }
+        if (getYaw() > -2 && getYaw() < 2)
+        {
+            turningToReference = 0;
+            setPWMTail(0, 0);
+        }
+        else
+        {
+            setPWMTail(200, 25);
+        }
+    }
+    else
+    { */
+        // run control algorithm for currentYaw
+        desiredYaw = 50;
+        float proportionalControl = YAW_KP * (desiredYaw - getYaw());
+        float integralControl = 0.0;
+        float derivativeControl = 0.0;
+
+        int totalControl = (int) proportionalControl + integralControl + derivativeControl;
+
+        int dutyCycle = (360 * (YAW_KP + YAW_KI)) / (100 * totalControl);
+
+        char string[30];
+        usnprintf (string, sizeof(string), "Control = %4d \r\n", dutyCycle);
+        UARTSend(string);
+
+        setPWMTail(200, dutyCycle);
+
+   // }
+}

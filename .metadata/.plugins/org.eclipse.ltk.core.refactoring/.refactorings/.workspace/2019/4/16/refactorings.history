@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete 10 resources" deleteContents="false" description="Delete 10 resources" element1="/heli_project_ence361_group13/ADCdemo1.c" element10="/heli_project_ence361_group13/uartDemo.c" element2="/heli_project_ence361_group13/ADCdemo2.c" element3="/heli_project_ence361_group13/butsTest4.c" element4="/heli_project_ence361_group13/milestone1.c" element5="/heli_project_ence361_group13/OLEDTest.c" element6="/heli_project_ence361_group13/pwmGen.c" element7="/heli_project_ence361_group13/pwmGen2.c" element8="/heli_project_ence361_group13/pwmGen3.c" element9="/heli_project_ence361_group13/pwmGen4.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="10" stamp="1555316865065"/>
+</session>

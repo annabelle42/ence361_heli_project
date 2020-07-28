@@ -1,0 +1,17 @@
+/**********************************************************
+//
+// buttonInput.h - module header for handling all button inputs
+// Created on 12/05/2019
+//
+// Authors: Annabelle Ritchie, Karan Naidu, Emily Tideswell
+// Group 13, Thursday PM lab
+// Contributions:  P.J. Bones   UCECE -- provided base code
+**********************************************************/
+#ifndef BUTTONINPUT_H_
+#define BUTTONINPUT_H_
+
+void checkForAltitudeInput ();
+void checkForYawInput ();
+int checkForModeInput (void);
+
+#endif /* BUTTONINPUT_H_ */

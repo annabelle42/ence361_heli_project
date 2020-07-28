@@ -1,0 +1,8 @@
+#ifndef BUTTONINPUT_H_
+#define BUTTONINPUT_H_
+
+void checkForAltitudeInput ();
+void checkForYawInput ();
+void checkForModeInput (void);
+
+#endif /* BUTTONINPUT_H_ */

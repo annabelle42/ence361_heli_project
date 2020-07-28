@@ -1,0 +1,113 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/timer.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "pwmGen.h"
+#include "uart.h"
+
+float timeStep;
+float integratedError;
+
+int currentAltitude;
+int currentYaw;
+
+int desiredAltitude;
+int desiredYaw;
+
+int turningToReference;
+int landing;
+
+static double integratedErrorAltitude;
+static double integratedErrorYaw;
+
+uint32_t prevTimer = 0;
+uint32_t currentTimer;
+
+#define ALTITUDE_KP 1.0
+#define ALTITUDE_KI 0.1
+
+#define YAW_KP 0.001
+#define YAW_KI 0.00001
+
+void initializeTimer (void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
+    TimerDisable(TIMER2_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER2_BASE, TIMER_CFG_A_PERIODIC);
+    TimerControlEvent(TIMER2_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
+    TimerEnable(TIMER2_BASE, TIMER_A);
+}
+
+double integralControlUpdate (double error, double delta_t, int altitude)
+{
+    if (altitude)
+    {
+        integratedErrorAltitude += error * delta_t;
+        return integratedError * ALTITUDE_KI;
+    }
+    integratedErrorYaw += error * delta_t;
+    return integratedErrorYaw;
+}
+
+void controlAltitude (void)
+{
+    if (landing)
+    {
+        // run landing program
+    }
+    else
+    {
+        // run control algorithm for currentAltitude
+
+        float currentError = desiredAltitude - currentAltitude;
+        integratedError += (currentError * timeStep);         // Numerical integration for integral control
+
+        currentAltitude = ALTITUDE_KP * currentError + ALTITUDE_KI * integratedError;
+    }
+}
+
+void controlYaw (void)
+{
+    // run control algorithm for currentYaw
+    desiredYaw = 170;
+    float proportionalControl = YAW_KP * (desiredYaw - getYaw());
+    currentTimer = TimerValueGet(TIMER2_BASE, TIMER_A);
+    float deltaTime = (prevTimer - currentTimer)/1021580;
+    float integralControl = YAW_KI * integralControlUpdate(desiredYaw - getYaw(), deltaTime, 0);
+    prevTimer = TimerValueGet(TIMER2_BASE, TIMER_A);
+    float derivativeControl = 0.0;
+
+    int totalControl = (int) proportionalControl + integralControl + derivativeControl;
+
+    int dutyCycle = (100 * totalControl) / (360 * (YAW_KP + YAW_KI));
+
+    char string[30];
+    usnprintf (string, sizeof(string), "Control = %4d \r\n", dutyCycle);
+    UARTSend(string);
+
+    if (proportionalControl < 0.0)
+    {
+        setPWM(200, dutyCycle);
+    }
+    else
+    {
+        setPWMTail(200, dutyCycle);
+    }
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;heli_project_ence361_group13/OrbitOLED&apos;" deleteContents="false" description="Delete resource &apos;heli_project_ence361_group13/OrbitOLED&apos;" element1="/heli_project_ence361_group13/OrbitOLED" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1553128460477"/>
+</session>

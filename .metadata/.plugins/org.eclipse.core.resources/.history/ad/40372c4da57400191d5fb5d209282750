@@ -1,0 +1,56 @@
+/**********************************************************
+//
+// yaw.h - Yaw module for sampling and decoding yaw
+// Created on 11/04/2019
+//
+// Authors: Annabelle Ritchie, Karan Naidu, Emily Tideswell
+// Group 13, Thursday PM lab
+// Contributions:  P.J. Bones   UCECE -- provided base code
+**********************************************************/
+
+#ifndef YAW_H_
+#define YAW_H_
+
+#include <stdint.h>
+int getYawDirGlobal(void);
+
+//int sampleYaw (void);
+
+//*****************************************************************************
+//
+// Initialises the GPIO pins and variables that are used to calculate the yaw.
+//
+//*****************************************************************************
+void initYaw (void);
+
+//*****************************************************************************
+//
+// Uses the pin changes from the pins connected to the quadrature decoder to
+// calculate the yaw direction of the helicopter.
+// Doesn't take in to account number of full rotations of the helicopter.
+//
+//*****************************************************************************
+void intHandlerYaw(void);
+
+//*****************************************************************************
+//
+// The interrupt handler for the for SysTick interrupt.
+//
+//*****************************************************************************
+void SysTickIntHandler(void);
+
+//*****************************************************************************
+//
+// Used to debug the initYaw function.
+//
+//*****************************************************************************
+void debugInitYaw(void);
+
+//*****************************************************************************
+//
+// Returns the yaw direction of the helicopter relative to a reference.
+//
+//*****************************************************************************
+int getYaw (void);
+
+#endif /* YAW_H_ */

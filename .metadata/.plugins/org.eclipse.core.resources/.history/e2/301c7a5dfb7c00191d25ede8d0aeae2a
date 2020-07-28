@@ -1,0 +1,129 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_ints.h"
+#include "driverlib/adc.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "stdlib.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "circBufT.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "buttonInput.h"
+#include "uart.h"
+
+int8_t upPushes = 0, downPushes = 0, rightPushes = 0, leftPushes = 0, selectPushes = 0;
+
+void checkForAltitudeInput ()
+{
+    //displayButtonState ("UP   ", "RELS", upPushes, 0);
+    //displayButtonState ("DOWN ", "RELS", downPushes, 1);
+
+    uint8_t butState = checkButton (UP);
+    switch (butState)
+    {
+    case PUSHED:
+        //displayButtonState ("UP   ", "PUSH", ++upPushes, 0);
+        if (desiredAltitude + 10 <= 100)
+        {
+            desiredAltitude += 10;
+        }
+        break;
+    case RELEASED:
+        //displayButtonState ("UP   ", "RELS", upPushes, 0);
+        break;
+    // Do nothing if state is NO_CHANGE
+    }
+
+    butState = checkButton (DOWN);
+    switch (butState)
+    {
+    case PUSHED:
+        //displayButtonState ("DOWN ", "PUSH", ++downPushes, 1);
+        if (desiredAltitude - 10 >= 0)
+        {
+            desiredAltitude -= 10;
+        }
+        break;
+    case RELEASED:
+       // displayButtonState ("DOWN ", "RELS", downPushes, 1);
+        break;
+    // Do nothing if state is NO_CHANGE
+    }
+}
+
+void checkForYawInput ()
+{
+   // displayButtonState ("RIGHT", "RELS", rightPushes, 2);
+   // displayButtonState ("LEFT ", "RELS", leftPushes, 3);
+
+    uint8_t butState = checkButton (RIGHT);
+    switch (butState)
+    {
+    case PUSHED:
+        //displayButtonState ("RIGHT", "PUSH", ++rightPushes, 2);
+        if (desiredYaw + 15 <= 360)
+        {
+            desiredYaw += 15;
+        }
+        else
+        {
+            desiredYaw = 15;
+        }
+        break;
+    case RELEASED:
+        //displayButtonState ("RIGHT", "RELS", rightPushes, 2);
+        break;
+    // Do nothing if state is NO_CHANGE
+    }
+
+    butState = checkButton (LEFT);
+    switch (butState)
+    {
+    case PUSHED:
+        //displayButtonState ("LEFT ", "PUSH", ++leftPushes, 3);
+        if (desiredYaw - 15 >= 0)
+        {
+            desiredYaw -= 15;
+        }
+        else
+        {
+            desiredYaw = 345;
+        }
+        break;
+    case RELEASED:
+        //displayButtonState ("LEFT ", "RELS", leftPushes, 3);
+        break;
+    // Do nothing if state is NO_CHANGE
+    }
+}
+
+int checkForModeInput (void)
+{
+    updateButtons();
+    uint8_t butState = checkButton(SELECT);
+    switch (butState)
+    {
+    case PUSHED:
+        if (selectPushes == 0)
+            butState = NO_CHANGE;
+        displayButtonState ("SELEC", "PUSH", ++selectPushes, 4);
+        // change mode
+        break;
+    case RELEASED:
+        displayButtonState ("SELEC", "RELS", selectPushes, 4);
+        break;
+    case NO_CHANGE:
+        displayButtonState("SELEC", "NOCH", selectPushes, 4);
+        break;
+    }
+    return butState;
+}

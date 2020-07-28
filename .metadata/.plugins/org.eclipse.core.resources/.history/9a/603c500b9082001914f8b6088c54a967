@@ -1,0 +1,104 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "buttonInput.h"
+#include "uart.h"
+#include "pwmGen.h"
+#include "adcControl.h"
+
+#define CHECK_BUTTON_RATE 1
+#define SAMPLE_ALTITUDE_RATE 1
+#define SAMPLE_YAW_RATE 1
+#define DISPLAY_RATE 1
+#define CONTROL_RATE 1
+
+#define ALTITUDE_DIVIDER 10.44
+
+int32_t meanAlt;
+int32_t clockCycle;
+
+void runScheduler (void)
+{
+    if (!clockCycle % SAMPLE_ALTITUDE_RATE)
+    {
+        meanAlt = -((sampleAltitude() - altitudeRef)/ALTITUDE_DIVIDER);
+    }
+    if (!clockCycle % SAMPLE_YAW_RATE)
+    {
+        int32_t meanYaw = getYaw();
+    }
+    if (!clockCycle % DISPLAY_RATE)
+    {
+        displayAltYaw (meanAlt, meanYaw);
+    }
+    if (!clockCycle % CHECK_BUTTON_RATE)
+    {
+        updateButtons();
+        checkForAltitudeInput();
+        checkForYawInput();
+        int modeButton = checkForModeInput();
+        flyingFSM(modeButton);
+    }
+
+    if (landed)
+    {
+        // turn off motors
+        setPWM(200, 0);
+        setPWMTail(200, 0);
+    }
+    else
+    {
+        if (!clockCycle % CONTROL_RATE)
+        {
+            // apply control algorithms
+            controlAltitude();
+            controlYaw();
+        }
+    }
+
+    if (landing || takingoff)
+    {
+        sortie();
+    }
+    clockCycle++;
+}
+
+void initialiseEverything (void)
+{
+    clockCycle = 0;
+    desiredAltitude = 0;
+    desiredYaw = 0;
+    landing = 0;
+    landed = 1;
+    takingoff = 0;
+    flying = 0;
+    turningToReference = 1; // we want the helicopter to turn to the reference at first
+    initClock ();
+    initADC ();
+    initDisplay ();
+    initButtons ();
+    // Enable interrupts to the processor.
+    IntMasterEnable();
+    initAltitude();
+    initYaw();
+    initPWM();
+    initialiseUSB_UART();
+    initializeTimer();
+}

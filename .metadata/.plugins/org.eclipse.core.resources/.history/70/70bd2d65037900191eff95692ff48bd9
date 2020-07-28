@@ -1,0 +1,168 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/timer.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "pwmGen.h"
+#include "uart.h"
+
+float timeStep;
+float integratedError;
+
+int currentAltitude;
+int currentYaw;
+
+int desiredAltitude;
+int desiredYaw;
+
+int turningToReference;
+int landing;
+
+static double integratedErrorAltitude;
+static double integratedErrorYaw;
+
+static double errorPreviousYaw;
+static double errorPreviousAltitude;
+
+uint32_t prevTimer = 0;
+uint32_t currentTimer;
+
+#define ALTITUDE_KP 1.0
+#define ALTITUDE_KI 0.1
+#define ALTITUDE_KD 0.5
+
+#define YAW_KP 0.2
+#define YAW_KI 0.0001
+#define YAW_KD 0.01
+
+void initializeTimer (void)
+{
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
+    TimerDisable(TIMER2_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER2_BASE, TIMER_CFG_A_PERIODIC);
+    TimerControlEvent(TIMER2_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
+    TimerEnable(TIMER2_BASE, TIMER_A);
+}
+
+double integralControlUpdate (double error, double delta_t, int altitude)
+{
+    if (altitude)
+    {
+        integratedErrorAltitude += error * delta_t;
+        return integratedError * ALTITUDE_KI;
+    }
+    integratedErrorYaw += error * delta_t;
+    return integratedErrorYaw;
+}
+
+double derivativeControlUpdate (double error, double delta_t, int altitude)
+{
+    if (altitude)
+    {
+        double error_derivative = (error - errorPreviousAltitude) / delta_t;
+        errorPreviousAltitude = error;
+        return error_derivative;
+    }
+    double error_derivative = (error - errorPreviousYaw) / delta_t;
+    errorPreviousYaw = error;
+    return error_derivative;
+}
+
+void controlAltitude (void)
+{
+    if (landing)
+    {
+        // run landing program
+    }
+    else
+    {
+        // run control algorithm for currentAltitude
+
+        float currentError = desiredAltitude - currentAltitude;
+        integratedError += (currentError * timeStep);         // Numerical integration for integral control
+
+        currentAltitude = ALTITUDE_KP * currentError + ALTITUDE_KI * integratedError;
+    }
+}
+
+/*int getYawError (int desired, int yaw)
+{
+    int error;
+    if (desired > 0)
+    {
+        if ((yaw >= desired && yaw <= 180) || (yaw >= -179 && yaw <= desired - 180))
+        {
+            // negative
+            error = desired - yaw;
+            if (error > 180)
+            {
+                error -= 359;
+            }
+        }
+        else
+        {
+            // positive
+            error = yaw - desired;
+        }
+    }
+    else
+    {
+        if ((yaw >= -179 && yaw <= desired) || (yaw >= desired && yaw <= desired + 180))
+        {
+            // positive
+        }
+        else
+        {
+            // negative
+        }
+    }
+}*/
+
+void controlYaw (void)
+{
+    // run control algorithm for currentYaw
+    desiredYaw = 170;
+    int error = desiredYaw - getYaw(); //getYawError(desiredYaw, getYaw());
+
+    float proportionalControl = YAW_KP * error;
+    currentTimer = TimerValueGet(TIMER2_BASE, TIMER_A);
+
+    float deltaTime = (prevTimer - currentTimer)/1021580;
+    float integralControl = YAW_KI * integralControlUpdate(error, deltaTime, 0);
+    float derivativeControl = YAW_KD * derivativeControlUpdate (error, deltaTime, 0);
+
+    prevTimer = TimerValueGet(TIMER2_BASE, TIMER_A);
+
+    float totalControl = proportionalControl + integralControl + derivativeControl;
+
+    char string[30];
+    usnprintf (string, sizeof(string), "Control = %4d \r\n", (int) totalControl);
+    UARTSend(string);
+
+    int dutyCycle = (int) totalControl;
+
+    if (desiredYaw - getYaw() < 0)
+    {
+        //setPWM(200, dutyCycle);
+    }
+    else
+    {
+        setPWMTail(200, dutyCycle);
+    }
+}

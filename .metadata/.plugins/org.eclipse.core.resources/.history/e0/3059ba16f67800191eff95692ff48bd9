@@ -1,0 +1,71 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+#include "altitude.h"
+#include "yaw.h"
+#include "kernel.h"
+#include "control.h"
+#include "buttonInput.h"
+
+int upButState, downButState, leftButState, rightButState;
+
+void checkForAltitudeInput ()
+{
+    updateButtons ();       // Poll the buttons
+    upButState = checkButton (UP);
+    downButState = checkButton (DOWN);
+    //char string[50];
+    //usnprintf (string, sizeof(string), "upbutstate:%4d \r\n downbutstate:%4d \r\n", upButState, downButState);
+    //UARTSend(string);
+    if (upButState == PUSHED)
+    {
+        if (desiredAltitude < 100)
+        {
+            desiredAltitude += 10;
+        }
+    }
+
+    if (downButState == PUSHED)
+    {
+        if (desiredAltitude > 0)
+        {
+            desiredAltitude -= 10;
+        }
+    }
+}
+
+void checkForYawInput ()
+{
+    updateButtons ();       // Poll the buttons
+    leftButState = checkButton (LEFT);
+    rightButState = checkButton (RIGHT);
+
+    if (rightButState == PUSHED)
+    {
+        if (desiredYaw < 100)
+        {
+            desiredYaw += 10;
+        }
+    }
+
+    if (leftButState == PUSHED)
+    {
+        if (desiredYaw > 0)
+        {
+            desiredYaw -= 10;
+        }
+    }
+}

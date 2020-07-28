@@ -1,0 +1,17 @@
+#ifndef KERNEL_H_
+#define KERNEL_H_
+
+int32_t meanAlt;
+
+void runScheduler (void);
+
+//*****************************************************************************
+//
+// Initializes everything across all modules
+//
+//*****************************************************************************
+void initialiseEverything (void);
+
+void sortie (void);
+
+#endif /* KERNEL_H_ */

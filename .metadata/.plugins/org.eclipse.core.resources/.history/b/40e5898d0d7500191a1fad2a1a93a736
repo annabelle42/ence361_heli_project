@@ -1,0 +1,67 @@
+/**********************************************************
+//
+// display.c - display module handling all display processing
+// Created on 11/04/2019
+//
+// Authors: Annabelle Ritchie, Karan Naidu, Emily Tideswell
+// Group 13, Thursday PM lab
+**********************************************************/
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/adc.h"
+#include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/systick.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/debug.h"
+#include "utils/ustdlib.h"
+#include "circBufT.h"
+#include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "display.h"
+
+void
+initDisplay (void)
+{
+    // initialise the Orbit OLED display
+    OLEDInitialise ();
+}
+
+//*****************************************************************************
+//
+// Function to display the mean ADC value (10-bit value, note) and sample count.
+//
+//*****************************************************************************
+void
+displayAltYaw(int meanAlt, int meanYaw, int ref)
+{
+    char string[17];  // 16 characters across the display
+
+    // Form a new string for the line.  The maximum width specified for the
+    //  number field ensures it is displayed right justified.
+    int percentAlt = -((meanAlt - ref)/10.44); //hardcoded max, CHANGE LATER!
+    usnprintf (string, sizeof(string), "Altitude = %4d%%...", percentAlt);
+    // Update line on display.
+    //OLEDStringDraw (string, 0, 0);
+    UARTSend(string);
+    usnprintf (string, sizeof(string), "Yaw = %4d", meanYaw);
+    //OLEDStringDraw (string, 0, 1);
+    UARTSend(string);
+}
+
+void displayDebugYaw(int phaseA, int phaseB, int dir)
+{
+    char string[17];
+   // usnprintf (string, sizeof(string), "dir = %4d", dir);
+    //OLEDStringDraw (string, 0, 2);
+    usnprintf (string, sizeof(string), "PhaseA = %4d", phaseA);
+    // Update line on display.
+    OLEDStringDraw (string, 0, 2);
+    usnprintf (string, sizeof(string), "PhaseB = %4d", phaseB);
+    OLEDStringDraw (string, 0, 3);
+
+}

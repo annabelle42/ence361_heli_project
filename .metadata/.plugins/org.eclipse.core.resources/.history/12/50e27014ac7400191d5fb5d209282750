@@ -1,0 +1,17 @@
+/*
+ * control.h
+ *
+ *  Created on: 12/05/2019
+ *      Author: annab
+ */
+
+#ifndef CONTROL_H_
+#define CONTROL_H_
+
+int currentAltitude;
+int currentYaw;
+
+void controlAltitude (void);
+void controlYaw (void);
+
+#endif /* CONTROL_H_ */

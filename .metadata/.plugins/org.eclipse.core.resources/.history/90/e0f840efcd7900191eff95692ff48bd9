@@ -1,0 +1,17 @@
+#ifndef CONTROL_H_
+#define CONTROL_H_
+
+int desiredAltitude;
+int desiredYaw;
+
+int turningToReference;
+int landing;
+int landed;
+
+void initializeTimer (void);
+double integralControlUpdate (double error, double delta_t, int altitude);
+double derivativeControlUpdate (double error, double delta_t, int altitude);
+void controlAltitude (void);
+void controlYaw (void);
+
+#endif /* CONTROL_H_ */

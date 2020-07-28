@@ -1,0 +1,35 @@
+/*
+ * adcControl.h
+ *
+ *  Created on: 12/05/2019
+ *      Author: annab
+ */
+
+#ifndef ADCCONTROL_H_
+#define ADCCONTROL_H_
+
+//*****************************************************************************
+//
+// The interrupt handler for the for SysTick interrupt.
+//
+//*****************************************************************************
+void
+SysTickIntHandler(void);
+
+//*****************************************************************************
+//
+// Initialisation functions for the clock (incl. SysTick), ADC, display
+//
+//*****************************************************************************
+void
+initClock (void);
+
+//*****************************************************************************
+//
+// Initializes ADC for altitude pin handler.
+//
+//*****************************************************************************
+void
+initADC (void);
+
+#endif /* ADCCONTROL_H_ */
